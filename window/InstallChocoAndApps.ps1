@@ -39,7 +39,7 @@ $appList = @(
     "vlc",               # VLC media player
     "flow-launcher",     # Flow Launcher
     "telegram.install",  # Telegram Desktop
-    "lightshot.install", # Lightshot
+    "lightshot.install" # Lightshot
 )
 
 # Install applications using Chocolatey
