@@ -40,7 +40,6 @@ $appList = @(
     "flow-launcher",     # Flow Launcher
     "telegram.install",  # Telegram Desktop
     "lightshot.install", # Lightshot
-    "internet-download-manager" # Internet Download Manager
 )
 
 # Install applications using Chocolatey
