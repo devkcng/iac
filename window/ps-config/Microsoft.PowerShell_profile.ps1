@@ -5,8 +5,8 @@ oh-my-posh init pwsh --config ~/mytheme.omp.json | Invoke-Expression
 Set-Alias python py
 Set-Alias python3 py
 
-# Alias for rm -rf (rmrf function)
-Set-Alias rm rmrf
+# Alias for rm-rf (force-delete-folder function)
+Set-Alias rm-rf force-delete-folder
 
 # Check if current shell has admin rights
 function is-admin {
@@ -15,34 +15,64 @@ function is-admin {
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
-# Custom sudo function: just warns if not admin
+# Custom sudo function
 function sudo {
-    if (-not (is-admin)) {
-        Write-Host "⚠️  This action requires Administrator privileges. Please restart PowerShell as Administrator." -ForegroundColor Yellow
-    } else {
-        Invoke-Expression ($args -join " ")
+    param (
+        [Parameter(ValueFromRemainingArguments = $true)]
+        [string[]]$args
+    )
+
+    $command = $args -join " "
+
+    # Append pause-like prompt to keep terminal open
+    $script = @"
+$command
+
+Read-Host -Prompt '✅ Done. Press Enter to close'
+"@
+
+    $tempScript = [System.IO.Path]::ChangeExtension([System.IO.Path]::GetTempFileName(), ".ps1")
+    Set-Content -Path $tempScript -Value $script -Encoding UTF8
+
+    try {
+        Start-Process pwsh -Verb RunAs -ArgumentList "-NoProfile", "-ExecutionPolicy Bypass", "-File `"$tempScript`""
+    } catch {
+        Write-Host "❌ Failed to elevate privilege or user denied UAC prompt." -ForegroundColor Red
     }
 }
 
-# rmrf: Recursively and forcefully remove a directory or file, requires admin manually
-function rmrf {
+
+function force-delete-folder {
     param (
         [Parameter(Mandatory = $true)]
-        [string]$Path
+        [string]$FolderPath
     )
 
-    if (-not (is-admin)) {
-        Write-Host "⚠️  rmrf requires Administrator privileges. Please run PowerShell as Administrator." -ForegroundColor Yellow
+    if (-not (Test-Path $FolderPath)) {
+        Write-Host "⚠️ Folder '$FolderPath' does not exist." -ForegroundColor Yellow
         return
     }
 
-    if (Test-Path $Path) {
-        Get-ChildItem -Path $Path -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
-            $_.Attributes = 'Normal'
-        }
+    $script = @"
+# Force normalize all attributes
+Get-ChildItem -Path '$FolderPath' -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
+    if (\$_.Attributes -ne 'Normal') { 
+        \$_.Attributes = 'Normal' 
+    }
+}
+# Then remove
+Remove-Item -Path '$FolderPath' -Recurse -Force -ErrorAction SilentlyContinue
 
-        Remove-Item -Path $Path -Recurse -Force -ErrorAction SilentlyContinue
-    } else {
-        Write-Host "⚠️  Path '$Path' does not exist." -ForegroundColor Yellow
+# Keep window open
+Read-Host -Prompt '✅ Done. Press Enter to close'
+"@
+
+    $tempFile = [System.IO.Path]::ChangeExtension([System.IO.Path]::GetTempFileName(), ".ps1")
+    Set-Content -Path $tempFile -Value $script -Encoding UTF8
+
+    try {
+        Start-Process pwsh -Verb RunAs -ArgumentList "-NoProfile", "-ExecutionPolicy Bypass", "-File `"$tempFile`""
+    } catch {
+        Write-Host "❌ UAC elevation failed or was denied." -ForegroundColor Red
     }
 }
