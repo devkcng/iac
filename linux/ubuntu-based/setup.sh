@@ -170,66 +170,7 @@ else
 fi
 '
 
-# 8. Install Zsh
-run_step "Installing Zsh" sudo apt install -y zsh
-
-# 9. Change default shell to Zsh (interactive)
-run_step "Setting Zsh as default shell" chsh -s "$(which zsh)"
-
-# 10. Install Oh My Zsh
-run_step "Installing Oh My Zsh" bash -c '
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
-  sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" || echo "⚠️ Oh My Zsh install might require manual setup." >> "$LOG_FILE"
-else
-  echo "✅ Oh My Zsh is already installed"
-fi
-'
-
-# 11. Zsh Plugins
-run_step "Installing Zsh syntax highlighting" bash -c '
-if [ ! -d "$HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting" ]; then
-  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
-else
-  echo "✅ Zsh syntax highlighting is already installed"
-fi
-'
-
-run_step "Installing Zsh autosuggestions" bash -c '
-if [ ! -d "$HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions" ]; then
-  git clone https://github.com/zsh-users/zsh-autosuggestions.git ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions
-else
-  echo "✅ Zsh autosuggestions is already installed"
-fi
-'
-
-run_step "Installing Zinit plugin manager" bash -c '
-if [ ! -d "$HOME/.oh-my-zsh/custom/plugins/zinit" ]; then
-  git clone https://github.com/zdharma-continuum/zinit.git ~/.oh-my-zsh/custom/plugins/zinit
-else
-  echo "✅ Zinit plugin manager is already installed"
-fi
-'
-
-# 12. Powerlevel10k theme
-run_step "Installing Powerlevel10k theme" bash -c '
-if [ ! -d "$HOME/.oh-my-zsh/custom/themes/powerlevel10k" ]; then
-  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.oh-my-zsh/custom/themes/powerlevel10k
-else
-  echo "✅ Powerlevel10k theme is already installed"
-fi
-'
-
-# 13. Modify .zshrc
-run_step "Updating .zshrc config" bash -c '
-if ! grep -q "ZSH_THEME=\"powerlevel10k/powerlevel10k\"" ~/.zshrc; then
-  sed -i "s|ZSH_THEME=.*|ZSH_THEME=\"powerlevel10k/powerlevel10k\"|" ~/.zshrc
-  echo -e "\nplugins=(git zsh-syntax-highlighting zsh-autosuggestions zinit)" >> ~/.zshrc
-else
-  echo "✅ .zshrc is already updated"
-fi
-'
-
-# 14. Install Flatpak apps (Telegram, VLC)
+# 8. Install Flatpak apps (Telegram, VLC)
 run_step "Installing Flatpak" sudo apt install -y flatpak
 run_step "Adding Flathub repository" bash -c '
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
