@@ -21,9 +21,30 @@ run_step() {
   fi
 }
 
-# 1. Update & upgrade system
-run_step "Updating system packages" sudo apt update
+# Update & upgrade system
+run_step "Updating system packages" sudo apt update -y
 run_step "Upgrading system packages" sudo apt upgrade -y
+
+# 1. Install Tilix and make it default terminal:
+run_step "Installing Tilix" sudo apt-get install tilix
+run_step "Set Tilix as default terminal" sudo update-alternatives --config x-terminal-emulator
+
+# Check if running inside Tilix
+run_step(){
+  if [ -z "$TILIX_ID" ]; then
+    echo -e "\n🧪 Script is not running inside Tilix. Relaunching setup in Tilix..."
+
+    TILIX_PATH=$(command -v tilix)
+    if [ -n "$TILIX_PATH" ]; then
+      "$TILIX_PATH" -e bash -c "bash '$0'"
+      echo "🛑 Exiting current terminal. Setup continues in Tilix..."
+      exit 0
+    else
+      echo "❌ Tilix was not found. Please install Tilix and rerun the script manually."
+      exit 1
+    fi
+  fi
+}
 
 # 2. Install essential packages
 run_step "Installing essential packages" sudo apt install -y \
