@@ -27,11 +27,37 @@ run_step "Upgrading system packages" sudo apt upgrade -y
 
 # 1. Install Tilix and make it default terminal:
 run_step "Installing Tilix" sudo apt-get install tilix
-run_step "Set Tilix as default terminal" sudo update-alternatives --config x-terminal-emulator
 
-# Check if running inside Tilix
+# Fix Tilix VTE support
+run_step "Fixing Tilix VTE" bash -c '
+if [ -f /etc/profile.d/vte-2.91.sh ]; then
+  sudo ln -sf /etc/profile.d/vte-2.91.sh /etc/profile.d/vte.sh
+  sudo chmod +x /etc/profile.d/vte.sh
+
+  if ! grep -q "vte.sh" ~/.bashrc; then
+    echo -e "\n# Enable VTE for Tilix" >> ~/.bashrc
+    echo "if [ \$TILIX_ID ] || [ \$VTE_VERSION ]; then" >> ~/.bashrc
+    echo "    source /etc/profile.d/vte.sh" >> ~/.bashrc
+    echo "fi" >> ~/.bashrc
+  else
+    echo "✅ VTE fix already in .bashrc"
+  fi
+else
+  echo "⚠️ vte-2.91.sh not found. Skipping VTE fix."
+fi
+'
+
+# Check if Tilix is already the default terminal
+DEFAULT_TERM=$(readlink -f /etc/alternatives/x-terminal-emulator)
+if [[ "$DEFAULT_TERM" != *tilix* ]]; then
+  run_step "Setting Tilix as default terminal" sudo update-alternatives --set x-terminal-emulator /usr/bin/tilix
+else
+  echo "✅ Tilix is already set as the default terminal emulator"
+fi
+
+# Relaunch the script in Tilix if not already running inside it
 if [ -z "$TILIX_ID" ]; then
-  echo -e "\n🧪 Script is not running inside Tilix. Relaunching setup in Tilix..."
+  echo -e "\n🧪 Not running inside Tilix. Relaunching setup inside Tilix..."
 
   TILIX_PATH=$(command -v tilix)
   if [ -n "$TILIX_PATH" ]; then
@@ -39,9 +65,11 @@ if [ -z "$TILIX_ID" ]; then
     echo "🛑 Exiting current terminal. Setup continues in Tilix..."
     exit 0
   else
-    echo "❌ Tilix was not found. Please install Tilix and rerun the script manually."
+    echo "❌ Tilix not found in PATH. Please install manually."
     exit 1
   fi
+else
+  echo "✅ Already running inside Tilix. Continuing setup..."
 fi
 
 # 2. Install essential packages
