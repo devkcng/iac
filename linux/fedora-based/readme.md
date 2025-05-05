@@ -474,7 +474,6 @@ Now, you can set the font to `Fira Code Nerd Font`.
     - Update the package cache and install Visual Studio Code:
 
         ```bash
-        sudo dnf check-update
         sudo dnf install code # or code-insiders
         ```
 
