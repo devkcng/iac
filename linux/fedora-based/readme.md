@@ -452,7 +452,7 @@ Now, you can set the font to `Fira Code Nerd Font`.
 1. Install the Development Tools group in Fedora. This will provide a set of essential tools, including compilers, debuggers, and other utilities:
 
     ```bash
-    sudo dnf groupinstall "Development Tools"
+    sudo dnf group install development-tools
     ```
 
 2. Install a code editor. For this guide, we will use Visual Studio Code. You can install it from the official repository or download the RPM package from the [official website](https://code.visualstudio.com/).
