@@ -1,0 +1,5 @@
+com.discordapp.Discord
+com.obsproject.Studio
+it.mijorus.gearlever
+org.gnome.World.PikaBackup
+org.telegram.desktop
